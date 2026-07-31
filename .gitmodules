@@ -1,0 +1,9 @@
+[submodule "CpGPT"]
+	path = CpGPT
+	url = https://github.com/lucascamillomd/CpGPT.git
+[submodule "methylbert"]
+	path = methylbert
+	url = https://github.com/methylbert/methylbert.git
+[submodule "mulan-methyl"]
+	path = mulan-methyl
+	url = https://github.com/husonlab/mulan-methyl.git

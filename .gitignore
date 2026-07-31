@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Cobi / Conda environments
+.conda/
+.venv/
+venv/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Large Data files
+*.RData
+*.rds
+*.csv
+*.tsv
+*.xlsx
+*.gz
+*.zip
+*.tar
+*.tgz
+
+# Exclude specific metadata or small configurations if you want, but by default ignore all csv.
+# If you want to include small csv files, you can add negations, e.g.:
+# !cayo_metadata_2026.csv
+# !macaque_features.csv
+
+# Large json files
+*.json
+!selected_window_sequences.json
+!liver_selected_sequences.json
+!package.json
+
+# Model weights
+*.ckpt
+*.pt
+*.pth
+*.bin
+
+# Log directories
+logs/
+*.log
