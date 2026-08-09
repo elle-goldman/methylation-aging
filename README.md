@@ -77,7 +77,7 @@ We generate and compare embeddings from five distinct approaches:
 
 ---
 
-## 🤝 Dependencies & Credits
+## 🤝 Models Compared
 
 *   **CpGPT**:
     *   *Paper*: "CpGPT: A Foundation Model for DNA Methylation"
