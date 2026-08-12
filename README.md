@@ -77,9 +77,7 @@ We generate and compare embeddings from five distinct approaches:
 
 ---
 
-## 🤝 Dependencies & Credits
-
-This project leverages third-party architectures and weights. To respect the original authors' work, these models are integrated as Git submodules pointing to their respective repositories:
+## 🤝 Models Compared
 
 *   **CpGPT**:
     *   *Paper*: "CpGPT: A Foundation Model for DNA Methylation"
