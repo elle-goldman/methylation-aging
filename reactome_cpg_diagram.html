@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reactome Pathway Diagram: Age-Predictive CpGs (Liver vs. Pan-Tissue)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1c2128;
+      --border-color: #30363d;
+      --text-main: #c9d1d9;
+      --text-heading: #f0f6fc;
+      --text-muted: #8b949e;
+      --liver-exclusive: #10b981;
+      --liver-exclusive-glow: rgba(16, 185, 129, 0.25);
+      --liver-enriched: #34d399;
+      --dual-shared: #f59e0b;
+      --pan-tissue: #3b82f6;
+      --pan-tissue-glow: rgba(59, 130, 246, 0.25);
+      --pos-corr: #ef4444;
+      --neg-corr: #06b6d4;
+      --accent-purple: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, rgba(22, 27, 34, 0.9), rgba(13, 17, 23, 0.95));
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .header-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 span.badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--liver-exclusive);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-weight: 600;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-top: 6px;
+      max-width: 900px;
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+
+    .filter-btn.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--pan-tissue);
+      color: #60a5fa;
+    }
+
+    .filter-btn .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Main Grid Layout */
+    .main-container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* View Tabs */
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-card);
+      color: var(--text-heading);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Reactome Canvas Container */
+    .reactome-viewport {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      min-height: 720px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Process Modules Grid */
+    .pathway-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .pathway-module {
+      background: rgba(13, 17, 23, 0.7);
+      border: 1px dashed var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .pathway-module:hover {
+      border-color: #484f58;
+      background: rgba(22, 27, 34, 0.85);
+    }
+
+    .module-header {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.6);
+      padding-bottom: 8px;
+    }
+
+    .module-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(139, 92, 246, 0.2);
+      color: #c084fc;
+    }
+
+    .cpg-node-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Reactome Style Node */
+    .cpg-node {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--text-muted);
+      border-radius: 6px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .cpg-node:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      border-color: #58a6ff;
+    }
+
+    .cpg-node.selected {
+      border-color: #58a6ff;
+      background: rgba(56, 139, 253, 0.1);
+    }
+
+    .cpg-node.liver-exclusive {
+      border-left-color: var(--liver-exclusive);
+    }
+    .cpg-node.liver-enriched {
+      border-left-color: var(--liver-enriched);
+    }
+    .cpg-node.dual-shared {
+      border-left-color: var(--dual-shared);
+    }
+    .cpg-node.pan-tissue {
+      border-left-color: var(--pan-tissue);
+    }
+
+    .cpg-id {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-heading);
+    }
+
+    .gene-symbols {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #58a6ff;
+    }
+
+    .weight-meter {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .weight-bar-bg {
+      width: 50px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .weight-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .weight-val {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .corr-badge {
+      font-size: 0.72rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: 'Fira Code', monospace;
+      font-weight: 500;
+    }
+    .corr-pos {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+    .corr-neg {
+      background: rgba(6, 182, 212, 0.15);
+      color: #67e8f9;
+    }
+
+    /* Detail Sidebar Panel */
+    .sidebar-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+    }
+
+    .panel-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .detail-card {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .detail-field {
+      margin-bottom: 10px;
+    }
+    .detail-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .detail-value {
+      font-size: 0.88rem;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .detail-value.code {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+    }
+
+    .exclusivity-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .exclusivity-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    /* Legend */
+    .legend-box {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+    .legend-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    /* Spectrum View */
+    .spectrum-view {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .spectrum-bar-card {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 160px 120px 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .spectrum-track {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .spectrum-liver {
+      background: var(--liver-exclusive);
+      height: 100%;
+    }
+
+    .spectrum-pan {
+      background: var(--pan-tissue);
+      height: 100%;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title-row">
+      <div>
+        <h1>
+          Reactome Pathway Map: Top Age-Predictive CpGs
+          <span class="badge">Liver Exclusivity Weighted</span>
+        </h1>
+        <p class="subtitle">
+          Biological pathway mapping of top rhesus macaque CpG markers derived from <code>cpg_liftover_summary.md</code>. Nodes are weighted by functional activity frequency exclusively in liver vs. across multi-tissue systems.
+        </p>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">FILTER BY EXCLUSIVITY:</span>
+      <button class="filter-btn active" onclick="filterNodes('all', this)">
+        <span class="dot" style="background: #fff;"></span> Show All (20)
+      </button>
+      <button class="filter-btn" onclick="filterNodes('liver-exclusive', this)">
+        <span class="dot" style="background: var(--liver-exclusive);"></span> Liver-Exclusive (2)
+      </button>
+      <button class="filter-btn" onclick="filterNodes('liver-enriched', this)">
+        <span class="dot" style="background: var(--liver-enriched);"></span> Liver-Enriched (4)
+      </button>
+      <button class="filter-btn" onclick="filterNodes('dual-shared', this)">
+        <span class="dot" style="background: var(--dual-shared);"></span> Dual / Shared (3)
+      </button>
+      <button class="filter-btn" onclick="filterNodes('pan-tissue', this)">
+        <span class="dot" style="background: var(--pan-tissue);"></span> Pan-Tissue (9)
+      </button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div>
+      <div class="view-tabs">
+        <button class="tab-btn active" onclick="switchView('map', this)">Reactome Pathway Map</button>
+        <button class="tab-btn" onclick="switchView('spectrum', this)">Liver vs Pan-Tissue Spectrum</button>
+      </div>
+
+      <!-- Reactome Map View -->
+      <div id="map-view" class="reactome-viewport">
+        <div class="pathway-grid">
+
+          <!-- Module 1: Hepatic Bioenergetics & Antioxidant Defense -->
+          <div class="pathway-module">
+            <div class="module-header">
+              <span>1. Bioenergetics & Antioxidant Defense</span>
+              <span class="module-tag">Mitochondria / Redox</span>
+            </div>
+            <div class="cpg-node-list">
+              <div class="cpg-node liver-enriched" data-type="liver-enriched" onclick="selectNode('8_10151079')">
+                <span class="corr-badge corr-neg">-0.761</span>
+                <div>
+                  <div class="cpg-id">8_10151079</div>
+                  <div class="gene-symbols">MSRA</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 70%; background: var(--liver-exclusive);"></div>
+                  </div>
+                  <span class="weight-val">70% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node dual-shared" data-type="dual-shared" onclick="selectNode('11_4742706')">
+                <span class="corr-badge corr-neg">-0.724</span>
+                <div>
+                  <div class="cpg-id">11_4742706</div>
+                  <div class="gene-symbols">NDUFA9, AKAP3</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 50%; background: var(--dual-shared);"></div>
+                  </div>
+                  <span class="weight-val">50% Liver</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module 2: Cytoskeletal Architecture & Focal Adhesions -->
+          <div class="pathway-module">
+            <div class="module-header">
+              <span>2. Cytoskeleton & Adhesion</span>
+              <span class="module-tag">Actin / Morphogenesis</span>
+            </div>
+            <div class="cpg-node-list">
+              <div class="cpg-node liver-exclusive" data-type="liver-exclusive" onclick="selectNode('6_146779581')">
+                <span class="corr-badge corr-neg">-0.722</span>
+                <div>
+                  <div class="cpg-id">6_146779581</div>
+                  <div class="gene-symbols">ABLIM3</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 85%; background: var(--liver-exclusive);"></div>
+                  </div>
+                  <span class="weight-val">85% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('1_83189442')">
+                <span class="corr-badge corr-neg">-0.721</span>
+                <div>
+                  <div class="cpg-id">1_83189442</div>
+                  <div class="gene-symbols">ENAH</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 30%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">30% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('14_8699620')">
+                <span class="corr-badge corr-neg">-0.734</span>
+                <div>
+                  <div class="cpg-id">14_8699620</div>
+                  <div class="gene-symbols">CFL1, MUS81</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 30%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">30% Liver</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module 3: Biliary & Electrolyte Transport -->
+          <div class="pathway-module">
+            <div class="module-header">
+              <span>3. Biliary & Ion Transport</span>
+              <span class="module-tag">Membrane / Receptor</span>
+            </div>
+            <div class="cpg-node-list">
+              <div class="cpg-node liver-exclusive" data-type="liver-exclusive" onclick="selectNode('3_177059260')">
+                <span class="corr-badge corr-neg">-0.738</span>
+                <div>
+                  <div class="cpg-id">3_177059260</div>
+                  <div class="gene-symbols">SLC4A2, ASIC3</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 80%; background: var(--liver-exclusive);"></div>
+                  </div>
+                  <span class="weight-val">80% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node liver-enriched" data-type="liver-enriched" onclick="selectNode('14_59685611')">
+                <span class="corr-badge corr-neg">-0.729</span>
+                <div>
+                  <div class="cpg-id">14_59685611</div>
+                  <div class="gene-symbols">CCKBR</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 75%; background: var(--liver-exclusive);"></div>
+                  </div>
+                  <span class="weight-val">75% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('13_66302679')">
+                <span class="corr-badge corr-pos">+0.412</span>
+                <div>
+                  <div class="cpg-id">13_66302679</div>
+                  <div class="gene-symbols">KCNG3, MTA3</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 35%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">35% Liver</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module 4: Epigenetic, Post-Transcriptional & Lipid Silencing -->
+          <div class="pathway-module">
+            <div class="module-header">
+              <span>4. Epigenetic & miRNA Silencing</span>
+              <span class="module-tag">RNAi / Lipid Meta</span>
+            </div>
+            <div class="cpg-node-list">
+              <div class="cpg-node liver-enriched" data-type="liver-enriched" onclick="selectNode('3_156792975')">
+                <span class="corr-badge corr-pos">+0.394</span>
+                <div>
+                  <div class="cpg-id">3_156792975</div>
+                  <div class="gene-symbols">MEST, MIR335</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 65%; background: var(--liver-enriched);"></div>
+                  </div>
+                  <span class="weight-val">65% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node dual-shared" data-type="dual-shared" onclick="selectNode('15_90514046')">
+                <span class="corr-badge corr-pos">+0.389</span>
+                <div>
+                  <div class="cpg-id">15_90514046</div>
+                  <div class="gene-symbols">RORB-AS1</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 45%; background: var(--dual-shared);"></div>
+                  </div>
+                  <span class="weight-val">45% Liver</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module 5: Immune Response & Tissue Regeneration -->
+          <div class="pathway-module">
+            <div class="module-header">
+              <span>5. Immune Signaling & Regeneration</span>
+              <span class="module-tag">Sinusoidal / Repair</span>
+            </div>
+            <div class="cpg-node-list">
+              <div class="cpg-node liver-enriched" data-type="liver-enriched" onclick="selectNode('16_9035289')">
+                <span class="corr-badge corr-pos">+0.387</span>
+                <div>
+                  <div class="cpg-id">16_9035289</div>
+                  <div class="gene-symbols">NTN1</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 60%; background: var(--liver-enriched);"></div>
+                  </div>
+                  <span class="weight-val">60% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node dual-shared" data-type="dual-shared" onclick="selectNode('3_46594128')">
+                <span class="corr-badge corr-pos">+0.403</span>
+                <div>
+                  <div class="cpg-id">3_46594128</div>
+                  <div class="gene-symbols">LAT2, RFC2</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 50%; background: var(--dual-shared);"></div>
+                  </div>
+                  <span class="weight-val">50% Liver</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module 6: Chromatin, Nuclear Transport & Ribosomes -->
+          <div class="pathway-module">
+            <div class="module-header">
+              <span>6. Chromatin, Transport & Ribosomes</span>
+              <span class="module-tag">Nucleus / Protein Synth</span>
+            </div>
+            <div class="cpg-node-list">
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('11_32040153')">
+                <span class="corr-badge corr-neg">-0.721</span>
+                <div>
+                  <div class="cpg-id">11_32040153</div>
+                  <div class="gene-symbols">IPO8</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 20%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">20% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('1_131347781')">
+                <span class="corr-badge corr-neg">-0.753</span>
+                <div>
+                  <div class="cpg-id">1_131347781</div>
+                  <div class="gene-symbols">RPL5, DIPK1A</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 20%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">20% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('2_108854233')">
+                <span class="corr-badge corr-neg">-0.727</span>
+                <div>
+                  <div class="cpg-id">2_108854233</div>
+                  <div class="gene-symbols">GNL3, SNORD19</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 20%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">20% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('6_170631732')">
+                <span class="corr-badge corr-pos">+0.430</span>
+                <div>
+                  <div class="cpg-id">6_170631732</div>
+                  <div class="gene-symbols">NKX2-5, RPL7AP33</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 25%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">25% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('9_130386965')">
+                <span class="corr-badge corr-pos">+0.425</span>
+                <div>
+                  <div class="cpg-id">9_130386965</div>
+                  <div class="gene-symbols">EBF3</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 25%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">25% Liver</span>
+                </div>
+              </div>
+
+              <div class="cpg-node pan-tissue" data-type="pan-tissue" onclick="selectNode('17_81303274')">
+                <span class="corr-badge corr-pos">+0.416</span>
+                <div>
+                  <div class="cpg-id">17_81303274</div>
+                  <div class="gene-symbols">LINC01039, CFL1P8</div>
+                </div>
+                <div class="weight-meter">
+                  <div class="weight-bar-bg">
+                    <div class="weight-bar-fill" style="width: 20%; background: var(--pan-tissue);"></div>
+                  </div>
+                  <span class="weight-val">20% Liver</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Spectrum View -->
+      <div id="spectrum-view" class="reactome-viewport spectrum-view">
+        <h3 style="color: var(--text-heading); font-size: 1.1rem; margin-bottom: 12px;">Tissue Exclusivity Spectrum (Ranked by Liver Exclusivity Index)</h3>
+        <div id="spectrum-list"></div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar Detail Panel -->
+    <div class="sidebar-panel">
+      <div class="panel-title">Node Details</div>
+
+      <div class="detail-card" id="detail-card">
+        <div class="detail-field">
+          <div class="detail-label">Macaque CpG Site</div>
+          <div class="detail-value code" id="d-cpg">6_146779581</div>
+        </div>
+
+        <div class="detail-field">
+          <div class="detail-label">Age Correlation (r)</div>
+          <div class="detail-value code" id="d-corr" style="color: #67e8f9;">-0.722 (Hypo-methylated with Age)</div>
+        </div>
+
+        <div class="detail-field">
+          <div class="detail-label">Human Liftover (hg38)</div>
+          <div class="detail-value code" id="d-coords">chr5:149265049</div>
+        </div>
+
+        <div class="detail-field">
+          <div class="detail-label">Associated Gene(s)</div>
+          <div class="detail-value" id="d-genes" style="color: #58a6ff; font-weight: 600;">ABLIM3</div>
+        </div>
+
+        <div class="detail-field">
+          <div class="detail-label">Tissue Exclusivity Class</div>
+          <div class="exclusivity-indicator" id="d-class">
+            <span class="exclusivity-pill" style="background: rgba(16, 185, 129, 0.2); color: var(--liver-exclusive); border: 1px solid var(--liver-exclusive);">Liver-Exclusive</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">85% Liver / 15% Pan</span>
+          </div>
+        </div>
+
+        <div class="detail-field" style="margin-top: 10px;">
+          <div class="detail-label">Top GO Terms / Pathway Role</div>
+          <div class="detail-value" id="d-go" style="font-size: 0.83rem;">
+            stress fiber; actin binding; protein binding. Essential for hepatocyte actin cytoskeleton and cell shape.
+          </div>
+        </div>
+      </div>
+
+      <div class="legend-box">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-heading); margin-bottom: 10px;">Color Legend</div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--liver-exclusive);"></div>
+          <span><strong>Liver-Exclusive</strong> (>80% liver activity)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--liver-enriched);"></div>
+          <span><strong>Liver-Enriched</strong> (60-79% liver activity)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--dual-shared);"></div>
+          <span><strong>Dual / Shared</strong> (40-59% liver activity)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--pan-tissue);"></div>
+          <span><strong>Pan-Tissue</strong> (<40% liver activity)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dataset = {
+      "6_146779581": {
+        cpg: "6_146779581",
+        corr: "-0.722",
+        coords: "chr5:149265049",
+        genes: "ABLIM3",
+        exclusivity: "Liver-Exclusive",
+        liverPct: 85,
+        panPct: 15,
+        color: "var(--liver-exclusive)",
+        go: "Stress fiber organization, actin filament binding, hepatocyte architecture maintenance."
+      },
+      "3_177059260": {
+        cpg: "3_177059260",
+        corr: "-0.738",
+        coords: "chr7:151057227",
+        genes: "SLC4A2, ASIC3, CDK5",
+        exclusivity: "Liver-Exclusive",
+        liverPct: 80,
+        panPct: 20,
+        color: "var(--liver-exclusive)",
+        go: "Solute:inorganic anion antiporter activity, cholangiocyte bicarbonate secretion, hepatic pH regulation."
+      },
+      "14_59685611": {
+        cpg: "14_59685611",
+        corr: "-0.729",
+        coords: "chr11:6259554",
+        genes: "CCKBR",
+        exclusivity: "Liver-Enriched",
+        liverPct: 75,
+        panPct: 25,
+        color: "var(--liver-exclusive)",
+        go: "G-protein coupled receptor activity, gastrointestinal and hepatic biliary secretion signaling."
+      },
+      "8_10151079": {
+        cpg: "8_10151079",
+        corr: "-0.761",
+        coords: "chr8:10417746",
+        genes: "MSRA",
+        exclusivity: "Liver-Enriched",
+        liverPct: 70,
+        panPct: 30,
+        color: "var(--liver-enriched)",
+        go: "Peptide-methionine (S)-S-oxide reductase activity; essential for hepatic antioxidant protein repair under oxidative stress."
+      },
+      "3_156792975": {
+        cpg: "3_156792975",
+        corr: "+0.394",
+        coords: "chr7:130492812",
+        genes: "MESTIT1, MIR335, MEST",
+        exclusivity: "Liver-Enriched",
+        liverPct: 65,
+        panPct: 35,
+        color: "var(--liver-enriched)",
+        go: "RISC complex; miRNA post-transcriptional silencing, imprinted locus regulating liver lipid storage and adipogenesis."
+      },
+      "16_9035289": {
+        cpg: "16_9035289",
+        corr: "+0.387",
+        coords: "chr17:9239903",
+        genes: "NTN1",
+        exclusivity: "Liver-Enriched",
+        liverPct: 60,
+        panPct: 40,
+        color: "var(--liver-enriched)",
+        go: "Netrin-1 ligand signaling; hepatic ischemia response, sinusoidal endothelia & liver regeneration."
+      },
+      "3_46594128": {
+        cpg: "3_46594128",
+        corr: "+0.403",
+        coords: "chr7:74226771",
+        genes: "LAT2, RFC2",
+        exclusivity: "Dual / Shared",
+        liverPct: 50,
+        panPct: 50,
+        color: "var(--dual-shared)",
+        go: "Immune response signaling (LAT2 - Kupffer / B cells) + Replication Factor C subunit 2 (RFC2 - DNA repair)."
+      },
+      "11_4742706": {
+        cpg: "11_4742706",
+        corr: "-0.724",
+        coords: "chr12:4649344",
+        genes: "NDUFA9, AKAP3",
+        exclusivity: "Dual / Shared",
+        liverPct: 50,
+        panPct: 50,
+        color: "var(--dual-shared)",
+        go: "Mitochondrial Complex I oxidative phosphorylation subunit (NDUFA9) + A-kinase anchoring protein (AKAP3)."
+      },
+      "15_90514046": {
+        cpg: "15_90514046",
+        corr: "+0.389",
+        coords: "chr9:74242822",
+        genes: "RORB-AS1",
+        exclusivity: "Dual / Shared",
+        liverPct: 45,
+        panPct: 55,
+        color: "var(--dual-shared)",
+        go: "Antisense RNA regulating ROR receptor circadian metabolic regulation and nuclear receptor transcription."
+      },
+      "13_66302679": {
+        cpg: "13_66302679",
+        corr: "+0.412",
+        coords: "chr2:42493004",
+        genes: "KCNG3, MTA3",
+        exclusivity: "Pan-Tissue",
+        liverPct: 35,
+        panPct: 65,
+        color: "var(--pan-tissue)",
+        go: "NuRD chromatin remodeling complex subunit (MTA3) + voltage-gated potassium channel (KCNG3)."
+      },
+      "1_83189442": {
+        cpg: "1_83189442",
+        corr: "-0.721",
+        coords: "chr1:225652368",
+        genes: "ENAH",
+        exclusivity: "Pan-Tissue",
+        liverPct: 30,
+        panPct: 70,
+        color: "var(--pan-tissue)",
+        go: "Focal adhesion, actin binding & cellular migration control across multi-tissue epithelial networks."
+      },
+      "14_8699620": {
+        cpg: "14_8699620",
+        corr: "-0.734",
+        coords: "chr11:65859050",
+        genes: "CFL1, MUS81",
+        exclusivity: "Pan-Tissue",
+        liverPct: 30,
+        panPct: 70,
+        color: "var(--pan-tissue)",
+        go: "Mitotic cytokinesis & actin dynamics (CFL1) + DNA interstrand crosslink endonuclease (MUS81)."
+      },
+      "6_170631732": {
+        cpg: "6_170631732",
+        corr: "+0.430",
+        coords: "chr5:173228952",
+        genes: "NKX2-5, RPL7AP33",
+        exclusivity: "Pan-Tissue",
+        liverPct: 25,
+        panPct: 75,
+        color: "var(--pan-tissue)",
+        go: "RNA polymerase II transcriptional repression & developmental homeobox transcription factor."
+      },
+      "9_130386965": {
+        cpg: "9_130386965",
+        corr: "+0.425",
+        coords: "chr10:129959989",
+        genes: "EBF3",
+        exclusivity: "Pan-Tissue",
+        liverPct: 25,
+        panPct: 75,
+        color: "var(--pan-tissue)",
+        go: "Early B-cell factor 3 transcription factor; sequence-specific DNA binding & chromatin targeting."
+      },
+      "11_32040153": {
+        cpg: "11_32040153",
+        corr: "-0.721",
+        coords: "chr12:30695876",
+        genes: "IPO8",
+        exclusivity: "Pan-Tissue",
+        liverPct: 20,
+        panPct: 80,
+        color: "var(--pan-tissue)",
+        go: "Importin 8 nuclear import receptor; essential housekeeping transport across nuclear pore complex."
+      },
+      "2_108854233": {
+        cpg: "2_108854233",
+        corr: "-0.727",
+        coords: "chr3:52685326",
+        genes: "GNL3, SNORD19",
+        exclusivity: "Pan-Tissue",
+        liverPct: 20,
+        panPct: 80,
+        color: "var(--pan-tissue)",
+        go: "Nucleostemin (GNL3) nucleolar stem/progenitor GTPase & small nucleolar RNA processing."
+      },
+      "1_131347781": {
+        cpg: "1_131347781",
+        corr: "-0.753",
+        coords: "chr1:92832287",
+        genes: "RPL5, DIPK1A",
+        exclusivity: "Pan-Tissue",
+        liverPct: 20,
+        panPct: 80,
+        color: "var(--pan-tissue)",
+        go: "Ribosomal 60S subunit constituent (RPL5) & ER membrane regulation."
+      },
+      "17_81303274": {
+        cpg: "17_81303274",
+        corr: "+0.416",
+        coords: "chr13:99580167",
+        genes: "LINC01039, CFL1P8",
+        exclusivity: "Pan-Tissue",
+        liverPct: 20,
+        panPct: 80,
+        color: "var(--pan-tissue)",
+        go: "Long intergenic non-protein coding RNA & cofilin pseudogene locus."
+      },
+      "16_48045751": {
+        cpg: "16_48045751",
+        corr: "+0.398",
+        coords: "chr17:48754741",
+        genes: "ENSG00000305838",
+        exclusivity: "Pan-Tissue",
+        liverPct: 20,
+        panPct: 80,
+        color: "var(--pan-tissue)",
+        go: "Uncharacterized lncRNA/novel transcripts."
+      },
+      "5_61925557": {
+        cpg: "5_61925557",
+        corr: "+0.383",
+        coords: "chr4:71832172",
+        genes: "Intergenic (chr4)",
+        exclusivity: "Pan-Tissue",
+        liverPct: 20,
+        panPct: 80,
+        color: "var(--pan-tissue)",
+        go: "Intergenic cis-regulatory sequence."
+      }
+    };
+
+    function selectNode(id) {
+      document.querySelectorAll('.cpg-node').forEach(el => el.classList.remove('selected'));
+      const targetNode = Array.from(document.querySelectorAll('.cpg-node')).find(el => el.onclick.toString().includes(id));
+      if (targetNode) targetNode.classList.add('selected');
+
+      const data = dataset[id];
+      if (!data) return;
+
+      document.getElementById('d-cpg').innerText = data.cpg;
+      const isPos = data.corr.startsWith('+');
+      document.getElementById('d-corr').innerText = `${data.corr} (${isPos ? 'Hyper-methylated' : 'Hypo-methylated'} with Age)`;
+      document.getElementById('d-corr').style.color = isPos ? '#fca5a5' : '#67e8f9';
+      document.getElementById('d-coords').innerText = data.coords;
+      document.getElementById('d-genes').innerText = data.genes;
+      document.getElementById('d-go').innerText = data.go;
+
+      document.getElementById('d-class').innerHTML = `
+        <span class="exclusivity-pill" style="background: rgba(255,255,255,0.1); color: ${data.color}; border: 1px solid ${data.color};">${data.exclusivity}</span>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">${data.liverPct}% Liver / ${data.panPct}% Pan</span>
+      `;
+    }
+
+    function filterNodes(type, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.cpg-node').forEach(node => {
+        if (type === 'all' || node.getAttribute('data-type') === type) {
+          node.style.display = 'grid';
+        } else {
+          node.style.display = 'none';
+        }
+      });
+    }
+
+    function switchView(view, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (view === 'map') {
+        document.getElementById('map-view').style.display = 'block';
+        document.getElementById('spectrum-view').style.display = 'none';
+      } else {
+        document.getElementById('map-view').style.display = 'none';
+        document.getElementById('spectrum-view').style.display = 'flex';
+        renderSpectrum();
+      }
+    }
+
+    function renderSpectrum() {
+      const container = document.getElementById('spectrum-list');
+      container.innerHTML = '';
+      
+      const sorted = Object.values(dataset).sort((a, b) => b.liverPct - a.liverPct);
+
+      sorted.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'spectrum-bar-card';
+        card.innerHTML = `
+          <div>
+            <div style="font-family: 'Fira Code', monospace; font-size: 0.85rem; font-weight: 600; color: var(--text-heading);">${item.cpg}</div>
+            <div style="font-size: 0.8rem; color: #58a6ff; font-weight: 500;">${item.genes}</div>
+          </div>
+          <div>
+            <span class="exclusivity-pill" style="color: ${item.color}; border: 1px solid ${item.color}; font-size: 0.7rem;">${item.exclusivity}</span>
+          </div>
+          <div class="spectrum-track">
+            <div class="spectrum-liver" style="width: ${item.liverPct}%; background: ${item.color};"></div>
+            <div class="spectrum-pan" style="width: ${item.panPct}%;"></div>
+          </div>
+          <div style="font-family: 'Fira Code', monospace; font-size: 0.82rem; font-weight: 600; color: var(--text-heading);">
+            ${item.liverPct}% Liver
+          </div>
+        `;
+        card.onclick = () => selectNode(item.cpg);
+        container.appendChild(card);
+      });
+    }
+
+    // Initialize with top node
+    selectNode('6_146779581');
+  </script>
+</body>
+</html>
