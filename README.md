@@ -4,15 +4,21 @@ This repository implements a comparative framework evaluating multiple DNA methy
 
 ---
 
-## 📋 Table of Contents
-1. [Project Overview](#-project-overview)
-2. [Datasets](#-datasets)
-3. [Unsupervised Aging Score](#-unsupervised-aging-score)
-4. [Models Compared](#-models-compared)
-5. [Project Structure](#-project-structure)
-6. [Dependencies & Credits](#-dependencies--credits)
-7. [Getting Started](#-getting-started)
-
+## 📂 Project Structure
+```
+├── CpGPT/                      # Submodule: CpGPT model repository
+├── methylbert/                 # Submodule: MethylBERT model repository
+├── mulan-methyl/               # Submodule: MuLan-Methyl model repository
+├── selected_percent_methylation.csv  # Blood methylation levels (572 x 216)
+├── selected_window_sequences.json    # DNA sequence windows for blood CpG sites
+├── liver_subset.csv            # Pre-extracted top 200 variable liver CpG sites
+├── liver_selected_sequences.json     # DNA sequence windows for liver CpG sites
+├── cayo_metadata_2026.csv      # Metadata for Cayo blood dataset
+├── prepare_data.py             # Script to extract liver subset & fetch sequences
+├── train_models_multimodel.ipynb # Primary analysis & evaluation notebook
+├── train_models_multimodel.py    # Python conversion of the analysis script
+└── README.md                   # This file
+```
 ---
 
 ## 🧬 Project Overview
@@ -57,62 +63,3 @@ We generate and compare embeddings from five distinct approaches:
 4. **CpGPT Foundation Model**: A transformer/mamba architecture designed to produce sample-level representations directly from methylation beta values, genomic positions, chromosomes, and DNA embeddings.
 5. **MethylBERT**: Continuous methylation embedding model utilizing a Performer-based language representation backbone to encode read-level/locus-level methylation context.
 
----
-
-## 📂 Project Structure
-```
-├── CpGPT/                      # Submodule: CpGPT model repository
-├── methylbert/                 # Submodule: MethylBERT model repository
-├── mulan-methyl/               # Submodule: MuLan-Methyl model repository
-├── selected_percent_methylation.csv  # Blood methylation levels (572 x 216)
-├── selected_window_sequences.json    # DNA sequence windows for blood CpG sites
-├── liver_subset.csv            # Pre-extracted top 200 variable liver CpG sites
-├── liver_selected_sequences.json     # DNA sequence windows for liver CpG sites
-├── cayo_metadata_2026.csv      # Metadata for Cayo blood dataset
-├── prepare_data.py             # Script to extract liver subset & fetch sequences
-├── train_models_multimodel.ipynb # Primary analysis & evaluation notebook
-├── train_models_multimodel.py    # Python conversion of the analysis script
-└── README.md                   # This file
-```
-
----
-
-## 🤝 Models Compared
-
-*   **CpGPT**:
-    *   *Paper*: "CpGPT: A Foundation Model for DNA Methylation"
-    *   *Repository*: [lucascamillomd/CpGPT](https://github.com/lucascamillomd/CpGPT)
-*   **MethylBERT**:
-    *   *Paper*: "methylBERT: A transformer-based model for read-level DNA methylation patterns"
-    *   *Repository*: [methylbert/methylbert](https://github.com/methylbert/methylbert)
-*   **MuLan-Methyl**:
-    *   *Paper*: "MuLan-Methyl: Multi-Task Language Representation Fine-Tuning for DNA Methylation Prediction"
-    *   *Repository*: [husonlab/mulan-methyl](https://github.com/husonlab/mulan-methyl)
-
----
-
-## 🚀 Getting Started
-
-### 1. Clone the Repository
-Because this repository tracks submodules, you must clone recursively to fetch the dependencies:
-```bash
-git clone --recursive <repository-url>
-cd methylation-aging
-```
-
-If you already cloned the repository without submodules, run:
-```bash
-git submodule update --init --recursive
-```
-
-### 2. Install Environment & Requirements
-Ensure you have the required Python environments. The notebook relies on PyTorch, HuggingFace Transformers, scikit-learn, and other common libraries.
-```bash
-pip install torch transformers scikit-learn pandas numpy matplotlib seaborn scipy
-```
-
-### 3. Run the Analysis
-Open the Jupyter notebook and run the cells sequentially to extract embeddings, run Ridge regression cross-validation, and compare performance tables and scatter plots:
-```bash
-jupyter notebook train_models_multimodel.ipynb
-```
