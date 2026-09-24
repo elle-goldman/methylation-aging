@@ -63,3 +63,32 @@ We generate and compare embeddings from five distinct approaches:
 4. **CpGPT Foundation Model**: A transformer/mamba architecture designed to produce sample-level representations directly from methylation beta values, genomic positions, chromosomes, and DNA embeddings.
 5. **MethylBERT**: Continuous methylation embedding model utilizing a Performer-based language representation backbone to encode read-level/locus-level methylation context.
 
+
+---
+
+## 🚀 Getting Started
+
+```bash
+pip install torch transformers scikit-learn pandas numpy matplotlib seaborn scipy
+jupyter notebook train_models_multimodel.ipynb
+```
+
+### Foundation model dependencies
+
+CpGPT, MethylBERT and MuLan-Methyl are external repositories, not part of this
+source tree. Clone them alongside this one and point the notebook at them:
+
+```bash
+git clone https://github.com/lucascamillomd/CpGPT.git
+git clone https://github.com/methylbert/methylbert.git
+git clone https://github.com/husonlab/mulan-methyl.git
+```
+
+They were previously carried as git submodules, which made this repo unclonable
+without network access to three third-party remotes.
+
+### Data
+
+The Cayo Santiago and ONPRC matrices are **not** in this repository — every
+`*.csv` is gitignored. `prepare_data.py` rebuilds the liver subset and fetches
+±100 bp `Mmul_10` context windows from the Ensembl REST API.
