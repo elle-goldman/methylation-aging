@@ -46,6 +46,28 @@ Models are trained on 90% of the dataset and evaluated on a **10% holdout test s
 - **Features**: The top 200 most variable CpG sites selected from a total of 235,810 sites in the raw matrix (`ONPRCliverSitePercMeth5x1090n94.RData`).
 - **Sequences**: Genomic coordinates lifted over and mapped to extract `+/- 100bp` context window sequences via the Ensembl REST API for *Macaca mulatta* (assembly `Mmul_10`).
 
+### Upstream pipeline
+
+The methylation matrices consumed here are produced by
+[`RheMacAge`](https://github.com/elisabethgoldman/RheMacAge) — the RRBS
+preprocessing and clock-construction pipeline (Bismark genome prep → trim →
+paired-end align → methylation extraction → 1 kb windowing → coverage filtering
+→ imputation → elastic-net clock).
+
+Two things that matter for anything built downstream of this repo:
+
+- The `chrN_start_end` column keys used throughout (`chr4_56044000_56045000`)
+  are produced by that pipeline's **`mapWindows.sh`**, which bins CpG-site
+  coverage files into 1 kb windows. Any project joining onto these features
+  should adopt the same binning rather than re-deriving it.
+- Windows are retained only where covered in ≥90% of samples, then imputed and
+  filtered at <5× median coverage and at >90% / <10% median methylation. The
+  feature set is therefore already coverage-conditioned — it is not a random
+  sample of the methylome, which matters when interpreting variance across sites.
+
+`RheMacAge` also carries `baboonTrimAlignExtract.sh` for the cross-species
+(two-primate) clock, and the trained coefficients in `clock/ClockBetas.txt`.
+
 ---
 
 ## 📈 Unsupervised Aging Score
