@@ -5,20 +5,26 @@ This repository implements a comparative framework evaluating multiple DNA methy
 ---
 
 ## 📂 Project Structure
+
+Tracked source. The `*.csv` / `*.RData` matrices are gitignored and are **not**
+in this repository — see [Data](#data).
+
 ```
-├── CpGPT/                      # Submodule: CpGPT model repository
-├── methylbert/                 # Submodule: MethylBERT model repository
-├── mulan-methyl/               # Submodule: MuLan-Methyl model repository
-├── selected_percent_methylation.csv  # Blood methylation levels (572 x 216)
-├── selected_window_sequences.json    # DNA sequence windows for blood CpG sites
-├── liver_subset.csv            # Pre-extracted top 200 variable liver CpG sites
-├── liver_selected_sequences.json     # DNA sequence windows for liver CpG sites
-├── cayo_metadata_2026.csv      # Metadata for Cayo blood dataset
-├── prepare_data.py             # Script to extract liver subset & fetch sequences
-├── train_models_multimodel.ipynb # Primary analysis & evaluation notebook
-├── train_models_multimodel.py    # Python conversion of the analysis script
-└── README.md                   # This file
+├── prepare_data.py                   # extract liver subset, fetch Ensembl sequence windows
+├── cpg_liftover.py                   # CpG coordinate liftover to Mmul_10
+├── extract_subset.R                  # pull the top variable sites from the raw RData
+├── train_models_multimodel.ipynb     # primary analysis & evaluation notebook
+├── train_models_multimodel.py        # script form of the above
+├── train_models_cpg_density.py       # CpG-density variant
+├── cayo_analysis.ipynb               # Cayo blood cohort
+├── cpgpt_analysis.ipynb              # CpGPT foundation-model run (ONPRC liver)
+├── selected_window_sequences.json    # DNA sequence windows, blood CpG sites
+└── liver_selected_sequences.json     # DNA sequence windows, liver CpG sites
 ```
+
+Expected alongside, not tracked: `selected_percent_methylation.csv` (blood,
+572 × 216), `liver_subset.csv` (top 200 variable liver sites),
+`cayo_metadata_2026.csv`, `ONPRCliverSitePercMeth5x1090n94.RData`.
 ---
 
 ## 🧬 Project Overview
