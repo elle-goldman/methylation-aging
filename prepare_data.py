@@ -7,7 +7,7 @@ import subprocess
 import os
 
 print("Processing Liver data...")
-rdata_path = '/Users/hellyr/Documents/ONPRCliverSitePercMeth5x1090n94.RData'
+rdata_path = 'myData.RData'
 # Use R to extract the top 200 variable sites
 r_code = f"""
 load('{rdata_path}')
