@@ -14,7 +14,7 @@ lo_8 = LiftOver(dest_8)
 print("LiftOver loaded successfully!")
 
 # Load top correlations
-top_cors = pd.read_csv('/Users/hellyr/Desktop/Projects/Methylation Aging/macaque_top_correlations.csv')
+top_cors = pd.read_csv('macaque_top_correlations.csv')
 
 results = []
 
@@ -92,7 +92,7 @@ for idx, row in top_cors.iterrows():
         })
 
 # Save JSON results
-with open('/Users/hellyr/Desktop/Projects/Methylation Aging/cpg_liftover_results.json', 'w') as f:
+with open('cpg_liftover_results.json', 'w') as f:
     json.dump(results, f, indent=2)
 
 # Generate Markdown Summary
@@ -100,8 +100,8 @@ md_content = """# LiftOver and GO Annotation of Top Age-Predictive CpG Sites
 
 This report details the conversion of the top 20 rhesus macaque CpG sites (predictive of liver aging and health) to the human genome reference (GRCh38/hg38) and their biological annotation.
 
-## Summary Table
-
+## Summary Table:
+#$ Contents
 | Macaque CpG | Correlation | Assembly | Human Coords (hg38) | Nearby/Overlapping Genes | Top GO Terms |
 |---|---|---|---|---|---|
 """
