@@ -43,10 +43,10 @@ from scipy.stats import pearsonr
 # ============================================================
 # File paths
 # ============================================================
-sequences_path = '/Users/hellyr/Desktop/Projects/Methylation Aging/selected_window_sequences.json'
-meth_path = '/Users/hellyr/Desktop/Projects/Methylation Aging/selected_percent_methylation.csv'
-metadata_path = '/Users/hellyr/Desktop/Projects/Methylation Aging/cayo_metadata_2026.csv'
-output_results_csv = '/Users/hellyr/Desktop/Projects/Methylation Aging/cayo_model_predictions_v2.csv'
+sequences_path = 'selected_window_sequences.json'
+meth_path = 'selected_percent_methylation.csv'
+metadata_path = 'cayo_metadata_2026.csv'
+output_results_csv = 'cayo_model_predictions_v2.csv'
 
 # ============================================================
 # 1. Load sequences and compute CpG density per window
