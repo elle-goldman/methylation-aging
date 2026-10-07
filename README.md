@@ -22,13 +22,10 @@ in this repository — see [Data](#data).
 └── liver_selected_sequences.json     # DNA sequence windows, liver CpG sites
 ```
 
-Expected alongside, not tracked: `selected_percent_methylation.csv` (blood,
-572 × 216), `liver_subset.csv` (top 200 variable liver sites),
-`cayo_metadata_2026.csv`, `ONPRCliverSitePercMeth5x1090n94.RData`.
 ---
 
 ## 🧬 Project Overview
-Epigenetic clocks traditionally map DNA methylation (DNAm) levels at specific CpG sites to chronological age. This project compares standard regression against representations derived from DNA language models (LLMs) and methylation transformer models. 
+This project compares traditional regularized regression against representations derived from DNA language models (LLMs) and methylation transformer models. 
 
 Models are trained on 90% of the dataset and evaluated on a **10% holdout test set** to predict an unsupervised biological age proxy calculated directly from global methylation statistics.
 
@@ -111,9 +108,6 @@ git clone https://github.com/lucascamillomd/CpGPT.git
 git clone https://github.com/methylbert/methylbert.git
 git clone https://github.com/husonlab/mulan-methyl.git
 ```
-
-They were previously carried as git submodules, which made this repo unclonable
-without network access to three third-party remotes.
 
 ### Data
 
