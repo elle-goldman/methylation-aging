@@ -1,4 +1,4 @@
-# 🧬 Methylation Aging: Multi-Model Epigenetic Clock Analysis
+# Methylation Aging: Multi-Model Epigenetic Clock Analysis
 
 This repository implements a comparative framework evaluating multiple DNA methylation foundation models and sequence-based models for predicting unsupervised biological age across independent rhesus macaque (*Macaca mulatta*) tissues.
 
@@ -61,9 +61,6 @@ Two things that matter for anything built downstream of this repo:
   filtered at <5× median coverage and at >90% / <10% median methylation. The
   feature set is therefore already coverage-conditioned — it is not a random
   sample of the methylome, which matters when interpreting variance across sites.
-
-`RheMacAge` also carries `baboonTrimAlignExtract.sh` for the cross-species
-(two-primate) clock, and the trained coefficients in `clock/ClockBetas.txt`.
 
 ---
 
