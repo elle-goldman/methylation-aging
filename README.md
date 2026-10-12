@@ -25,7 +25,7 @@ in this repository — see [Data](#data).
 ---
 
 ## 🧬 Project Overview
-This project compares traditional regularized regression against representations derived from DNA language models (LLMs) and methylation transformer models. 
+This project compares traditional regularized regression against representations derived from DNA language models and methylation transformer models. 
 
 Models are trained on 90% of the dataset and evaluated on a **10% holdout test set** to predict an unsupervised biological age proxy calculated directly from global methylation statistics.
 
@@ -40,7 +40,7 @@ Models are trained on 90% of the dataset and evaluated on a **10% holdout test s
 
 ### 2. Liver Dataset (ONPRC Cohort)
 - **Samples**: 94 liver RRBS samples.
-- **Features**: The top 200 most variable CpG sites selected from a total of 235,810 sites in the raw matrix (`ONPRCliverSitePercMeth5x1090n94.RData`).
+- **Features**: The top 200 most variable CpG sites selected from a total of 235,810 sites in the raw matrix.
 - **Sequences**: Genomic coordinates lifted over and mapped to extract `+/- 100bp` context window sequences via the Ensembl REST API for *Macaca mulatta* (assembly `Mmul_10`).
 
 ### Upstream pipeline
@@ -84,9 +84,8 @@ We generate and compare embeddings from five distinct approaches:
 
 1. **Base Ridge**: Raw methylation percentages (baseline) with no embedding projection.
 2. **Nucleotide Transformer**: 1024-dimensional sequence embeddings from HuggingFace's `InstaDeepAI/nucleotide-transformer-v2-500m-multi-species` DNA language model, projected via matrix-vector multiplication with sample methylation levels ($M \times E$).
-3. **MuLan-Methyl**: 768-dimensional sequence embeddings from the 3-mer tokenized `wenhuan/MuLan-Methyl-BERT` model, projected via $M \times E$.
-4. **CpGPT Foundation Model**: A transformer/mamba architecture designed to produce sample-level representations directly from methylation beta values, genomic positions, chromosomes, and DNA embeddings.
-5. **MethylBERT**: Continuous methylation embedding model utilizing a Performer-based language representation backbone to encode read-level/locus-level methylation context.
+3. **CpGPT Foundation Model**: A transformer/mamba architecture designed to produce sample-level representations directly from methylation beta values, genomic positions, chromosomes, and DNA embeddings.
+4. **MethylBERT**: Continuous methylation embedding model utilizing a Performer-based language representation backbone to encode read-level/locus-level methylation context.
 
 
 ---
@@ -100,17 +99,10 @@ jupyter notebook train_models_multimodel.ipynb
 
 ### Foundation model dependencies
 
-CpGPT, MethylBERT and MuLan-Methyl are external repositories, not part of this
+CpGPT and MethylBERT are external repositories, not part of this
 source tree. Clone them alongside this one and point the notebook at them:
 
 ```bash
 git clone https://github.com/lucascamillomd/CpGPT.git
 git clone https://github.com/methylbert/methylbert.git
-git clone https://github.com/husonlab/mulan-methyl.git
 ```
-
-### Data
-
-The Cayo Santiago and ONPRC matrices are **not** in this repository — every
-`*.csv` is gitignored. `prepare_data.py` rebuilds the liver subset and fetches
-±100 bp `Mmul_10` context windows from the Ensembl REST API.
