@@ -6,9 +6,6 @@ This repository implements a comparative framework evaluating multiple DNA methy
 
 ## 📂 Project Structure
 
-Tracked source. The `*.csv` / `*.RData` matrices are gitignored and are **not**
-in this repository — see [Data](#data).
-
 ```
 ├── prepare_data.py                   # extract liver subset, fetch Ensembl sequence windows
 ├── cpg_liftover.py                   # CpG coordinate liftover to Mmul_10
